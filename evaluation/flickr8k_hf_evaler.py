@@ -105,18 +105,19 @@ class Flickr8kHFEvaler(object):
         for i, img_id in enumerate(sorted(img_ids)[:5]):
             print(f"\nImage {img_id}:")
             
-            # Ground truth captions
-            gt_caps = [gt['caption'] for gt in gts.get(img_id, [])]
-            print(f"  Ground Truth:")
-            for j, cap in enumerate(gt_caps[:3]):  # Show first 3 GT captions
-                print(f"    {j+1}. {cap}")
-            
             # Predicted caption
             pred_caps = [r['caption'] for r in res.get(img_id, [])]
             if pred_caps:
                 print(f"  Prediction: {pred_caps[0]}")
             else:
                 print(f"  Prediction: <No prediction>")
+            
+            # Ground truth captions
+            gt_caps = [gt['caption'] for gt in gts.get(img_id, [])]
+            print(f"  Ground Truth:")
+            for j, cap in enumerate(gt_caps[:3]):  # Show first 3 GT captions
+                print(f"    {j+1}. {cap}")
+            
 
         # Tokenize
         print("\nTokenizing captions...")

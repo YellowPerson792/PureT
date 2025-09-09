@@ -51,6 +51,13 @@ class Flickr8kDataset(data.Dataset):
         self.seq_per_img = seq_per_img
         self.max_samples = max_samples 
 
+        # Optional global feature dict
+        self.gv_feat = (
+            pickle.load(open(gv_feat_path, 'rb'), encoding='bytes')
+            if (isinstance(gv_feat_path, str) and len(gv_feat_path) > 0)
+            else None
+        ) 
+
         # Determine HF split from the image_ids_path name (train/val/test); default to train
         if image_ids_path and os.path.exists(image_ids_path):
             basename = os.path.basename(str(image_ids_path)).lower()
@@ -95,13 +102,6 @@ class Flickr8kDataset(data.Dataset):
             self.image_ids = ids_from_json[:max_n]
             print(f"Loaded {len(self.image_ids)} image IDs from JSON file")
             # If provided ids exceed dataset size, they will be truncated silently
-
-        # Optional global feature dict
-        self.gv_feat = (
-            pickle.load(open(gv_feat_path, 'rb'), encoding='bytes')
-            if (isinstance(gv_feat_path, str) and len(gv_feat_path) > 0)
-            else None
-        )
 
         # Resize/normalize to match original pipeline (grid-like image tensor)
         self.transform = transforms.Compose(
@@ -322,7 +322,7 @@ class Flickr8kDataset(data.Dataset):
         # Flickr8k dataset has fields: image, caption_0, caption_1, caption_2, caption_3, caption_4
         caps = []
         
-        # Collect all caption fields (caption_0 to caption_4)
+        # Collect all caption fields (caption_0 to caption_4) in order
         for j in range(5):  # caption_0 to caption_4
             cap_key = f'caption_{j}'
             if cap_key in sample and sample[cap_key]:
@@ -343,11 +343,13 @@ class Flickr8kDataset(data.Dataset):
         if not caps:
             caps = ['.']
             
-        # choose seq_per_img captions
+        # Use all available captions in order (no random sampling)
+        # If we have fewer captions than seq_per_img, repeat the available ones
         if len(caps) >= self.seq_per_img:
-            chosen = random.sample(list(caps), self.seq_per_img)
+            chosen = caps[:self.seq_per_img]  # Take first seq_per_img captions in order
         else:
-            chosen = list(caps) + random.choices(list(caps), k=self.seq_per_img - len(caps))
+            # Repeat captions to fill seq_per_img requirement
+            chosen = caps * (self.seq_per_img // len(caps)) + caps[:self.seq_per_img % len(caps)]
 
         input_seq = np.zeros((self.seq_per_img, self.seq_len), dtype='int')
         target_seq = np.full((self.seq_per_img, self.seq_len), -1, dtype='int')

@@ -82,35 +82,30 @@ def load_train(distributed, epoch, coco_set):
     shuffle = cfg.DATA_LOADER.SHUFFLE if sampler is None else False
     
     loader = torch.utils.data.DataLoader(
-        coco_set, 
-        batch_size = cfg.TRAIN.BATCH_SIZE,
-        shuffle = shuffle, 
-        drop_last = cfg.DATA_LOADER.DROP_LAST, 
-        pin_memory = cfg.DATA_LOADER.PIN_MEMORY,
-        sampler = sampler, 
-        collate_fn = sample_collate
+        coco_set,
+        batch_size=cfg.TRAIN.BATCH_SIZE,
+        shuffle=shuffle,
+        sampler=sampler,
+        collate_fn=sample_collate
     )
     return loader
 
-def load_val(image_ids_path, gv_feat_path, att_feats_folder=None, max_samples=200):
+def load_val(image_ids_path, gv_feat_path='', att_feats_folder=None, max_samples=200):
     # Pass None directly to dataset when no image_ids_path is provided
     coco_set = Flickr8kDataset(
-        image_ids_path = image_ids_path, 
-        input_seq = None, 
-        target_seq = None, 
-        gv_feat_path = gv_feat_path, 
-        # att_feats_folder = att_feats_folder,
-        seq_per_img = 1, 
-        max_feat_num = cfg.DATA_LOADER.MAX_FEAT,
-        max_samples = max_samples  # Use dynamic max_samples parameter
+        image_ids_path=image_ids_path,
+        input_seq=None,  # Use None to trigger validation mode
+        target_seq=None,  # Use None to trigger validation mode
+        gv_feat_path=gv_feat_path or '',
+        seq_per_img=1,
+        max_feat_num=cfg.DATA_LOADER.MAX_FEAT,
+        max_samples=max_samples  # Use dynamic max_samples parameter
     )
 
     loader = torch.utils.data.DataLoader(
-        coco_set, 
-        batch_size = cfg.TEST.BATCH_SIZE,
-        shuffle = False, 
-        drop_last = False, 
-        pin_memory = cfg.DATA_LOADER.PIN_MEMORY, 
-        collate_fn = sample_collate_val
+        coco_set,
+        batch_size=cfg.TEST.BATCH_SIZE,
+        shuffle=False,
+        collate_fn=sample_collate_val
     )
     return loader

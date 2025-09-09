@@ -30,7 +30,6 @@ cd /d/MLLMs/corenet/PureT && bash experiments_PureT/PureT_XE/train.sh
 
 """
 
-
 class Trainer(object):
     def __init__(self, args):
         super(Trainer, self).__init__()
@@ -79,7 +78,7 @@ class Trainer(object):
         self.setup_network()
         
         # Use appropriate scorer based on dataset - directly use training dataset
-        if cfg.INFERENCE.EVAL == 'FLICKR8K' or 'FLICKR8K_HF':
+        if cfg.INFERENCE.EVAL in ('FLICKR8K', 'FLICKR8K_HF'):
             # Directly pass the training dataset to avoid reloading
             self.scorer = Flickr8kScorer(shared_dataset=self.coco_set)
         else:
@@ -90,7 +89,7 @@ class Trainer(object):
         val_samples = getattr(self.args, 'val_samples', 100)
         if val_samples == 0:
             val_samples = None  # None表示使用所有样本
-        
+
         # For HF evaluator, use None since it doesn't need real JSON files
         if cfg.INFERENCE.EVAL == 'FLICKR8K_HF':
             eval_ids_path = None
@@ -117,19 +116,18 @@ class Trainer(object):
         train_samples = getattr(self.args, 'train_samples', 200)
         if train_samples == 0:
             train_samples = None  # None表示使用所有样本
-            
-        # 使用空字符串或None作为训练ID路径，因为HF数据集不需要这个文件
+
+        # 使用生成的 JSON 文件进行训练
         train_id_path = cfg.DATA_LOADER.TRAIN_ID if cfg.DATA_LOADER.TRAIN_ID else None
             
         self.coco_set = Flickr8kDataset(
-            image_ids_path = train_id_path,
-            input_seq = cfg.DATA_LOADER.INPUT_SEQ_PATH,
-            target_seq = cfg.DATA_LOADER.TARGET_SEQ_PATH,
-            gv_feat_path = cfg.DATA_LOADER.TRAIN_GV_FEAT,
-            # att_feats_folder = cfg.DATA_LOADER.TRAIN_ATT_FEATS,
-            seq_per_img = cfg.DATA_LOADER.SEQ_PER_IMG,
-            max_feat_num = cfg.DATA_LOADER.MAX_FEAT,
-            max_samples = train_samples
+            image_ids_path=train_id_path,
+            input_seq=cfg.DATA_LOADER.INPUT_SEQ_PATH,
+            target_seq=cfg.DATA_LOADER.TARGET_SEQ_PATH,
+            gv_feat_path=cfg.DATA_LOADER.TRAIN_GV_FEAT,
+            seq_per_img=cfg.DATA_LOADER.SEQ_PER_IMG,
+            max_feat_num=cfg.DATA_LOADER.MAX_FEAT,
+            max_samples=train_samples
         )
         print(f"Training dataset: Using {train_samples if train_samples else 'ALL'} samples")
 
@@ -253,10 +251,6 @@ class Trainer(object):
         val_res = None
         if self.val_evaler is not None:
             val_res = self.val_evaler(self.model, f'step_{iteration}')
-            print(f'\n######## Step {iteration} (VAL) ########')
-            print(str(val_res))
-            self.logger.info(f'######## Step {iteration} (VAL) ########')
-            self.logger.info(str(val_res))
         else:
             print('VAL evaluation skipped (no evaler).')
 

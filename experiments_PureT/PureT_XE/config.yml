@@ -22,10 +22,10 @@ DATA_LOADER:
   VAL_ATT_FEATS: ''                         # Not used for Flickr8k
   TEST_GV_FEAT: ''                          # Not used for Flickr8k
   TEST_ATT_FEATS: ''                        # Not used for Flickr8k
-  TRAIN_ID: ''                              # Not used with HuggingFace dataset
-  VAL_ID: ''                                # Not used with HuggingFace dataset
-  TEST_ID: ''                               # Not used with HuggingFace dataset
-  TEST_4W_ID: ''                            # Not used with HuggingFace dataset
+  TRAIN_ID: './data/flickr8k/train_ids.json'
+  VAL_ID: './data/flickr8k/val_ids.json'
+  TEST_ID: './data/flickr8k/test_ids.json'
+  TEST_4W_ID: './data/flickr8k/test_ids.json'
   INPUT_SEQ_PATH: ''                        # Not used for Flickr8k (auto-generated)
   TARGET_SEQ_PATH: ''                       # Not used for Flickr8k (auto-generated)
   SEQ_PER_IMG: 5
@@ -34,8 +34,8 @@ DATA_LOADER:
 ############################ MODEL ############################
 MODEL:
   TYPE: 'PureT'
-  SEQ_LEN: 17                             # include <EOS>/<BOS> - increased sequence length
-  VOCAB_SIZE: 7375                          # exclude <EOS>/<BOS> - Updated for Flickr8k dataset
+  SEQ_LEN: 17                               # include <EOS>/<BOS>
+  VOCAB_SIZE: 7375                          # exclude <EOS>/<BOS>
   ########## word embedding ##########
   WORD_EMBED_DIM: 512
   WORD_EMBED_ACT: 'CELU'
@@ -122,25 +122,23 @@ SOLVER:
 
 ############################ LOSSES ############################
 LOSSES:
-  XE_TYPE: 'LabelSmoothing'     # 'CrossEntropy', 'LabelSmoothing'
+  XE_TYPE: 'LabelSmoothing'
   LABELSMOOTHING: 0.1
   RL_TYPE: 'RewardCriterion'
 
 ############################ SCORER ############################
 SCORER:
-  TYPES: ['Bleu_1', 'Bleu_2', 'Bleu_3', 'Bleu_4', 'ROUGE_L', 'CIDEr', 'METEOR']  # 支持多种评估指标
-  WEIGHTS: [0.1, 0.1, 0.1, 0.2, 0.1, 0.3, 0.1]  # 对应权重
-  GT_PATH: ''                                      # Not used with Flickr8k HuggingFace dataset
-  CIDER_CACHED: ''                                 # Not used with Flickr8k HuggingFace dataset
+  TYPES: ['Bleu_1', 'Bleu_2', 'Bleu_3', 'Bleu_4', 'ROUGE_L', 'CIDEr', 'METEOR']
+  WEIGHTS: [0.1, 0.1, 0.1, 0.2, 0.1, 0.3, 0.1]
   
 ############################ INFERENCE ############################
 INFERENCE:
   VOCAB: './data/flickr8k/flickr8k_vocabulary.txt'
   ID_KEY: 'image_id'
   CAP_KEY: 'caption'
-  EVAL: 'FLICKR8K_HF'                           # Use HuggingFace-based evaluator (no JSON files needed)
-  VAL_ANNFILE: ''                               # Not used with FLICKR8K_HF
-  TEST_ANNFILE: ''                              # Not used with FLICKR8K_HF
+  EVAL: 'FLICKR8K'                              # Use original Flickr8k evaluator with JSON files
+  VAL_ANNFILE: './data/flickr8k/captions_val.json'
+  TEST_ANNFILE: './data/flickr8k/captions_test.json'
   BEAM_SIZE: 5
   GREEDY_DECODE: True
 
