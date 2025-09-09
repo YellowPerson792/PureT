@@ -2,7 +2,7 @@ import os
 import torch
 from torchvision import transforms
 from lib.config import cfg
-from PureT.datasets_.flickr8k_dataset import Flickr8kDataset
+from datasets_.flickr8k_dataset import Flickr8kDataset
 import datasets
 import samplers.distributed
 import numpy as np

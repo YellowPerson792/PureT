@@ -15,7 +15,7 @@ import torch.distributed as dist
 
 import losses
 import models
-from PureT.datasets_.flickr8k_dataset import Flickr8kDataset
+from datasets_.flickr8k_dataset import Flickr8kDataset
 from datasets_.data_loader import load_train
 import lib.utils as utils
 from lib.utils import AverageMeter
@@ -26,8 +26,8 @@ from scorer.flickr8k_scorer import Flickr8kScorer
 from lib.config import cfg, cfg_from_file
 
 """
-cd /d/MLLMs/corenet/PureT && bash experiments_PureT/PureT_XE/train.sh
-
+cd /d/MLLMs/corenet/PureT && python main.py --folder ./experiments_PureT/PureT_XE 
+cd /root/autodl-tmp/corenet/PureT/ && python main.py --folder ./experiments_PureT/PureT_XE --eval_steps 300
 """
 
 class Trainer(object):
@@ -275,7 +275,35 @@ class Trainer(object):
         snapshot_folder = os.path.join(cfg.ROOT_DIR, 'snapshot')
         if not os.path.exists(snapshot_folder):
             os.mkdir(snapshot_folder)
-        torch.save(self.model.state_dict(), self.snapshot_path("caption_model", epoch+1))
+        
+        # 保存当前模型
+        current_model_path = self.snapshot_path("caption_model", epoch+1)
+        torch.save(self.model.state_dict(), current_model_path)
+        
+        # 检查并清理旧的checkpoint文件
+        if cfg.SOLVER.MAX_CHECKPOINTS > 0:
+            self._cleanup_old_checkpoints(snapshot_folder)
+    
+    def _cleanup_old_checkpoints(self, snapshot_folder):
+        """清理旧的checkpoint文件，只保留最新的MAX_CHECKPOINTS个"""
+        import glob
+        import os
+        
+        # 查找所有caption_model的checkpoint文件
+        pattern = os.path.join(snapshot_folder, "caption_model_*.pth")
+        checkpoint_files = glob.glob(pattern)
+        
+        # 按修改时间排序，最新的在最后
+        checkpoint_files.sort(key=lambda x: os.path.getmtime(x))
+        
+        # 如果文件数量超过限制，删除最旧的文件
+        while len(checkpoint_files) > cfg.SOLVER.MAX_CHECKPOINTS:
+            oldest_file = checkpoint_files.pop(0)
+            try:
+                os.remove(oldest_file)
+                print(f"Removed old checkpoint: {oldest_file}")
+            except OSError as e:
+                print(f"Failed to remove {oldest_file}: {e}")
 
     def make_kwargs(self, indices, input_seq, target_seq, gv_feat, att_feats, att_mask):
         device = input_seq.device

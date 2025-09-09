@@ -224,6 +224,8 @@ __C.SOLVER.TEST_INTERVAL = 1
 
 __C.SOLVER.SNAPSHOT_ITERS = 3
 
+__C.SOLVER.MAX_CHECKPOINTS = 2  # 最大保存的checkpoint数量，设置为-1则不限制
+
 # SGD
 __C.SOLVER.SGD = edict()
 __C.SOLVER.SGD.MOMENTUM = 0.9

@@ -102,6 +102,7 @@ SOLVER:
   DISPLAY: 20
   TEST_INTERVAL: 1
   SNAPSHOT_ITERS: 1
+  MAX_CHECKPOINTS: 2            # 最大保存的checkpoint数量，设置为-1则不限制
 
   ########## SGD ##########
   SGD:
@@ -116,9 +117,9 @@ SOLVER:
     GAMMA: 0.8
     STEP_SIZE: 3
     SETP_TYPE: 'Iter'         # 'Epoch', 'Iter'
-    WARMUP: 100               #  For Noam only - reduced to 100 steps for small dataset
-    FACTOR: 0.01               #  For Noam only - reduced from 1.0 to 0.01 for stability
-    MODEL_SIZE: 512           #  For Noam only
+    WARMUP: 600               # 调整为500步预热 (COCO 10000步的约1/20，考虑数据集大小比例)
+    FACTOR: 0.5               # 提高factor从0.01到0.5，为小数据集提供更强的学习率
+    MODEL_SIZE: 512           # For Noam only
 
 ############################ LOSSES ############################
 LOSSES:
